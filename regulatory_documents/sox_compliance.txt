@@ -1,0 +1,39 @@
+
+    Sarbanes-Oxley Act (SOX) - Key Compliance Requirements
+    
+    Section 302: Corporate Responsibility for Financial Reports
+    - CEO and CFO must certify financial reports
+    - Officers responsible for establishing and maintaining internal controls
+    - Must evaluate effectiveness of internal controls within 90 days
+    - Must present conclusions about effectiveness in report
+    - Must disclose all significant deficiencies to auditors
+    
+    Section 404: Management Assessment of Internal Controls
+    - Annual report must contain internal control report
+    - Management must assess effectiveness of internal controls
+    - External auditor must attest to management's assessment
+    - Must identify material weaknesses
+    - Controls must ensure accurate financial reporting
+    
+    Section 409: Real Time Issuer Disclosures
+    - Companies must disclose material changes on rapid and current basis
+    - Information must be in plain English
+    - Must include trend and qualitative information
+    
+    Section 802: Criminal Penalties for Altering Documents
+    - Fines and/or up to 20 years imprisonment
+    - Applies to destruction, alteration, or falsification of records
+    - Auditors must maintain all audit work papers for 5 years
+    
+    Section 906: Corporate Responsibility for Financial Reports
+    - CEO and CFO must certify that financial statements fully comply
+    - Knowing violations subject to fines up to $5 million
+    - Willful violations up to 20 years imprisonment
+    
+    Key Control Requirements:
+    - Segregation of duties
+    - Access controls to systems and data
+    - Change management procedures
+    - Backup and recovery procedures
+    - Audit trails and logging
+    

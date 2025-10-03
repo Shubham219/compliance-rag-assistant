@@ -1,0 +1,44 @@
+
+    Health Insurance Portability and Accountability Act (HIPAA)
+    
+    Privacy Rule - Protected Health Information (PHI)
+    PHI includes any information that can identify an individual:
+    - Names, addresses, dates (birth, death, admission, discharge)
+    - Phone numbers, email addresses
+    - Social Security numbers
+    - Medical record numbers
+    - Health plan beneficiary numbers
+    - Account numbers, certificate/license numbers
+    - Biometric identifiers (fingerprints, voiceprints)
+    - Full-face photographs
+    - Any other unique identifying number or code
+    
+    Security Rule - Administrative Safeguards
+    - Security Management Process: Risk analysis, risk management, sanctions, review
+    - Assigned Security Responsibility: Designate security official
+    - Workforce Security: Authorization procedures, clearance, termination
+    - Information Access Management: Access authorization, access establishment
+    - Security Awareness Training: Protection from malicious software, log-in monitoring
+    - Security Incident Procedures: Response and reporting
+    - Contingency Plan: Data backup, disaster recovery, emergency mode
+    - Evaluation: Periodic technical and non-technical evaluations
+    
+    Security Rule - Physical Safeguards
+    - Facility Access Controls: Contingency operations, facility security plan
+    - Workstation Use: Proper functions and physical attributes
+    - Workstation Security: Restrict physical access
+    - Device and Media Controls: Disposal, media re-use, accountability, data backup
+    
+    Security Rule - Technical Safeguards
+    - Access Control: Unique user identification, emergency access, encryption
+    - Audit Controls: Hardware, software, and procedural mechanisms to record activity
+    - Integrity: Ensure PHI is not improperly altered or destroyed
+    - Person or Entity Authentication: Verify identity
+    - Transmission Security: Integrity controls, encryption
+    
+    Breach Notification Rule
+    - Must notify individuals within 60 days of breach discovery
+    - If breach affects 500+ individuals, notify HHS and media
+    - If breach affects fewer than 500, notify HHS annually
+    - Business associates must notify covered entities within 60 days
+    
