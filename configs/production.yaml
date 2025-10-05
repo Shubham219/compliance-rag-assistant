@@ -1,0 +1,129 @@
+# ==========================================
+# FILE: configs/production.yaml
+# ==========================================
+# Production environment configuration
+# Optimized for performance and security
+
+# RAG settings optimized for production
+rag:
+  chunk_size: 1000
+  chunk_overlap: 200
+  top_k: 5                      # More results for better answers
+  temperature: 0.0              # Deterministic for consistency
+  score_threshold: 0.75         # Higher threshold for quality
+
+# Embeddings - Use GPU in production
+embeddings:
+  model: "sentence-transformers/all-MiniLM-L6-v2"
+  device: "cuda"                # GPU acceleration
+  batch_size: 64                # Larger batch for GPU
+  normalize_embeddings: true
+
+# Vector store
+vector_store:
+  type: "faiss"
+  persist_directory: "/app/data/vector_db"
+  index_type: "IndexIVFFlat"    # Faster search for large datasets
+  auto_save: true
+
+# LLM - Use OpenAI for production quality
+llm:
+  provider: "openai"
+  model: "gpt-3.5-turbo"        # Or gpt-4 for best quality
+  temperature: 0.0              # Deterministic
+  max_tokens: 2000
+  request_timeout: 30           # Strict timeout
+  max_retries: 3
+
+# Paths - Use absolute paths in production
+paths:
+  documents: "/app/data/regulatory_documents"
+  vector_db: "/app/data/vector_db"
+  logs: "/app/logs"
+  temp: "/app/temp"
+
+# Logging - Less verbose, structured
+logging:
+  level: "WARNING"              # Only warnings and errors
+  file: "/app/logs/prod.log"
+  format: "json"                # Structured for log aggregation
+  console: false                # Logs to file only
+  rotation: "50 MB"
+  retention: "90 days"
+  compression: "zip"
+
+# API settings - Production hardened
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 8                    # Multiple workers for load
+  reload: false                 # Never reload in production
+  cors_enabled: true
+  cors_origins:
+    - "https://yourdomain.com"
+    - "https://api.yourdomain.com"
+  cors_methods:
+    - "GET"
+    - "POST"
+  rate_limit_enabled: true      # Prevent abuse
+  rate_limit_requests: 100
+  rate_limit_period: 3600
+  max_upload_size: 52428800     # 50 MB
+
+# UI settings
+ui:
+  host: "0.0.0.0"
+  port: 7860
+  share: false
+  show_error: false             # Hide detailed errors from users
+  enable_queue: true
+  max_size: 100
+
+# Document processing
+document_processing:
+  allowed_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".docx"
+  max_file_size: 52428800       # 50 MB
+  pdf:
+    extract_images: false       # Faster processing
+    extract_tables: true
+
+# Query processing
+query_processing:
+  enhance_query: true           # Better results
+  min_query_length: 5
+  max_query_length: 500
+  save_history: true
+  history_max_size: 10000       # Keep more history
+
+# Performance - Optimized
+performance:
+  enable_cache: true
+  cache_ttl: 3600               # 1 hour cache
+  batch_size: 20
+  max_memory_mb: 8192           # 8 GB limit
+
+# Security - Production hardened
+security:
+  require_auth: true            # Require API authentication
+  api_key_header: "X-API-Key"
+  sanitize_input: true
+  scan_uploads: true            # Scan for malware
+
+# Monitoring - Full monitoring
+monitoring:
+  enable_metrics: true
+  metrics_port: 9090
+  health_check_interval: 30
+  track_query_time: true
+  track_token_usage: true
+
+# Features - Stable features only
+features:
+  enable_multimodal: false
+  enable_streaming: false
+  enable_citations: true
+  enable_rag_fusion: false
+  enable_reranking: true        # Better result quality

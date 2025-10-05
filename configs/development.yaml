@@ -1,0 +1,102 @@
+# Development environment configuration
+# Overrides default.yaml for local development
+
+# RAG settings optimized for development
+rag:
+  chunk_size: 800               # Smaller chunks for faster testing
+  chunk_overlap: 150
+  top_k: 3                      # Fewer results for faster queries
+  temperature: 0.2              # Slightly more creative for testing
+
+# Embeddings
+embeddings:
+  model: "sentence-transformers/all-MiniLM-L6-v2"
+  device: "cpu"                 # Most dev machines use CPU
+  batch_size: 16                # Smaller batch for lower memory
+
+# Vector store
+vector_store:
+  type: "faiss"
+  persist_directory: "./data/vector_db"
+  auto_save: true
+
+# LLM - Use local Ollama for free development
+llm:
+  provider: "ollama"
+  model: "llama2"               # Or mistral, codellama
+  temperature: 0.2
+  max_tokens: 1500
+  base_url: "http://localhost:11434"
+  request_timeout: 120          # Longer timeout for slow machines
+
+# Paths
+paths:
+  documents: "./data/regulatory_documents"
+  vector_db: "./data/vector_db"
+  logs: "./logs"
+  temp: "./temp"
+
+# Logging - Verbose for debugging
+logging:
+  level: "DEBUG"                # Show all logs
+  file: "./logs/dev.log"
+  format: "text"                # Easier to read than JSON
+  console: true
+  colorize: true
+  rotation: "5 MB"              # Smaller rotation for dev
+
+# API settings
+api:
+  host: "127.0.0.1"             # Localhost only
+  port: 8000
+  workers: 1                    # Single worker for easier debugging
+  reload: true                  # Auto-reload on code changes
+  cors_enabled: true
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:7860"
+  docs_url: "/docs"
+  rate_limit_enabled: false     # No rate limiting in dev
+
+# UI settings
+ui:
+  host: "127.0.0.1"
+  port: 7860
+  share: false                  # Don't create public URL
+  show_error: true              # Show detailed errors
+  enable_queue: false           # Faster for single-user dev
+
+# Document processing
+document_processing:
+  allowed_extensions:
+    - ".pdf"
+    - ".txt"
+    - ".docx"
+    - ".md"
+  max_file_size: 10485760       # 10 MB limit for dev
+
+# Performance
+performance:
+  enable_cache: true
+  cache_ttl: 600                # Shorter cache for dev (10 min)
+  max_memory_mb: 2048           # Lower memory limit
+
+# Security - Relaxed for dev
+security:
+  require_auth: false
+  sanitize_input: false         # Easier testing
+  scan_uploads: false
+
+# Monitoring
+monitoring:
+  enable_metrics: true
+  track_query_time: true
+  track_token_usage: true
+
+# Features - Enable experimental features in dev
+features:
+  enable_multimodal: false
+  enable_streaming: true
+  enable_citations: true
+  enable_rag_fusion: false
+  enable_reranking: false
