@@ -4,8 +4,8 @@ Splits documents into optimal chunks for RAG retrieval.
 """
 
 from typing import List, Optional
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from langchain_classic.text_splitter import RecursiveCharacterTextSplitter
+from langchain_classic.schema import Document
 
 from ..utils.logger import app_logger
 from ..utils.config import config
@@ -151,9 +151,7 @@ if __name__ == "__main__":
 
     # Read text from document_loader example
     from .document_loader import DocumentLoader
-
-    documents_dir = "./regulatory_documents"
-    loader = DocumentLoader(documents_path=documents_dir)
+    loader = DocumentLoader()
     documents = loader.load_all_documents()
 
     processor = TextProcessor()

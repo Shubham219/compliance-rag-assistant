@@ -6,7 +6,7 @@ rag:
   chunk_size: 800               # Smaller chunks for faster testing
   chunk_overlap: 150
   top_k: 3                      # Fewer results for faster queries
-  temperature: 0.2              # Slightly more creative for testing
+  temperature: 0.1             # Slightly more creative for testing
 
 # Embeddings
 embeddings:
@@ -18,15 +18,14 @@ embeddings:
 vector_store:
   type: "faiss"
   persist_directory: "./data/vector_db"
-  auto_save: true
+  auto_save: True
 
 # LLM - Use local Ollama for free development
 llm:
-  provider: "ollama"
-  model: "llama2"               # Or mistral, codellama
+  provider: "huggingface"  # Use Hugging Face model for better quality in dev
+  model: "meta-llama/Llama-3.1-8B"               # Or mistral, codellama
   temperature: 0.2
-  max_tokens: 1500
-  base_url: "http://localhost:11434"
+  max_tokens: 100
   request_timeout: 120          # Longer timeout for slow machines
 
 # Paths
@@ -65,6 +64,7 @@ ui:
   share: false                  # Don't create public URL
   show_error: true              # Show detailed errors
   enable_queue: false           # Faster for single-user dev
+  
 
 # Document processing
 document_processing:

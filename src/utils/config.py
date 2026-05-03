@@ -90,6 +90,8 @@ class Config:
             self.config["llm"]["model"] = os.getenv("MODEL_NAME")
         if os.getenv("OPENAI_API_KEY"):
             self.config["llm"]["api_key"] = os.getenv("OPENAI_API_KEY")
+        if os.getenv("HF_TOKEN"):
+            self.config["llm"]["hf_token"] = os.getenv("HF_TOKEN")
         
         # Paths
         if os.getenv("DOCUMENTS_PATH"):

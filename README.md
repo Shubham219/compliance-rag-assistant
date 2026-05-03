@@ -8,6 +8,15 @@ An AI-powered **Retrieval Augmented Generation (RAG)** system for regulatory com
 
 ---
 
+## 👓 App Screenshots 
+### 1️⃣ Initialize a model
+![alt text](image-3.png)
+
+### 2️⃣ Ask a question
+![alt text](image-4.png)
+
+---
+
 ## 🌟 Features
 
 - **💬 Intelligent Q&A**: Ask natural language questions about compliance requirements

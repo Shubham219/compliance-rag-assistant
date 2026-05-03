@@ -5,9 +5,8 @@ This is the core class that brings everything together.
 
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-from langchain.chains import RetrievalQA
-from langchain.prompts import PromptTemplate
-from langchain.schema import Document
+from langchain_classic.prompts import PromptTemplate
+from langchain_classic.schema import Document
 
 from .document_loader import DocumentLoader
 from .text_processor import TextProcessor
@@ -120,8 +119,8 @@ class RegulatoryComplianceRAG:
         app_logger.info("Vector store created and saved")
     
     def _create_qa_chain(self):
-        """Create the question-answering chain"""
-        app_logger.info("Creating QA chain...")
+        """Create a manual QA chain with fine-grained control"""
+        app_logger.info("Creating manual QA chain...")
         
         # Create custom prompt for compliance queries
         prompt_template = """You are a Regulatory Compliance Assistant specialized in helping organizations understand and comply with regulations.
@@ -142,30 +141,110 @@ Instructions:
 
 Answer:"""
 
-        PROMPT = PromptTemplate(
+        self.prompt_template = PromptTemplate(
             template=prompt_template,
             input_variables=["context", "question"]
         )
         
         # Get retriever
-        retriever = self.vector_store_manager.get_retriever(
+        self.retriever = self.vector_store_manager.get_retriever(
             k=config.get("rag.top_k", 4)
         )
         
-        if retriever is None:
+        if self.retriever is None:
             app_logger.error("Failed to create retriever")
-            return
+            raise ValueError("Retriever initialization failed")
         
-        # Create RetrievalQA chain
-        self.qa_chain = RetrievalQA.from_chain_type(
-            llm=self.llm,
-            chain_type="stuff",
-            retriever=retriever,
-            return_source_documents=True,
-            chain_type_kwargs={"prompt": PROMPT}
-        )
+        # Mark chain as ready (we'll execute it manually in query method)
+        self.qa_chain = True  # Flag indicating chain is ready
         
-        app_logger.info("QA chain created successfully")
+        app_logger.info("Manual QA chain created successfully")
+    
+    def _execute_manual_qa_chain(self, question: str) -> Dict[str, Any]:
+        """
+        Execute the QA chain manually for fine-grained control.
+        
+        Args:
+            question: The compliance question
+            
+        Returns:
+            Dictionary containing answer and context documents
+        """
+        app_logger.debug(f"Executing manual QA chain for: {question[:100]}")
+        
+        try:
+            # Step 1: Retrieve relevant documents
+            retrieved_docs = self.vector_store_manager.similarity_search(
+                query=question)
+            
+            if not retrieved_docs:
+                app_logger.warning("No documents retrieved for query")
+                return {
+                    "answer": "No relevant documents found in the knowledge base for this query.",
+                    "context_documents": [],
+                    "num_sources": 0,
+                    "execution_steps": ["retrieval"]
+                }
+            
+            # Step 2: Format context from retrieved documents
+            context_parts = []
+            for i, doc in enumerate(retrieved_docs, 1):
+                doc_content = doc.page_content
+                doc_source = doc.metadata.get("source", "Unknown source")
+                context_parts.append(f"[Document {i} - {doc_source}]\n{doc_content}\n")
+            
+            formatted_context = "\n".join(context_parts)
+            
+            # Step 3: Format the prompt with context and question
+            prompt_input = {
+                "context": formatted_context,
+                "question": question
+            }
+            
+            formatted_prompt = self.prompt_template.format(**prompt_input)
+            
+            app_logger.debug(f"Formatted prompt length: {len(formatted_prompt)} characters")
+            
+            # Step 4: Call LLM to generate answer
+            app_logger.debug("Calling LLM for answer generation...")
+            llm_response = self.llm.invoke(formatted_prompt)
+            
+            # Extract text from response (handles both string and message objects)
+            if hasattr(llm_response, 'content'):
+                answer = llm_response.content
+            else:
+                answer = str(llm_response)
+            
+            # Step 5: Format source documents
+            source_documents = []
+            for i, doc in enumerate(retrieved_docs, 1):
+                source_documents.append({
+                    "document_id": i,
+                    "content": doc.page_content[:500],  # Truncate for response
+                    "metadata": doc.metadata,
+                    "full_content": doc.page_content
+                })
+            
+            result = {
+                "answer": answer,
+                "context_documents": source_documents,
+                "num_sources": len(retrieved_docs),
+                "execution_steps": ["retrieval", "context_formatting", "llm_call"],
+                "raw_context": formatted_context[:1000]  # Include truncated context for debugging
+            }
+            
+            app_logger.debug("Manual QA chain execution completed successfully")
+            return result
+            
+        except Exception as e:
+            app_logger.error(f"Error executing manual QA chain: {e}", exc_info=True)
+            return {
+                "answer": f"Error generating answer: {str(e)}",
+                "context_documents": [],
+                "num_sources": 0,
+                "error": str(e),
+                "execution_steps": []
+            }
     
     def add_documents(self, file_paths: List[str]) -> bool:
         """
@@ -208,7 +287,7 @@ Answer:"""
         return_sources: bool = True
     ) -> Dict[str, Any]:
         """
-        Query the RAG system.
+        Query the RAG system using manual chain execution.
         
         Args:
             question: Compliance question
@@ -228,32 +307,39 @@ Answer:"""
         app_logger.info(f"Processing query: {question[:100]}")
         
         # Add regulation type to query if specified
+        full_question = question
         if regulation_type:
-            question = f"[{regulation_type}] {question}"
+            full_question = f"[{regulation_type}] {question}"
         
         try:
-            # Execute query
-            result = self.qa_chain.invoke({"query": question})
+            # Execute the manual QA chain
+            chain_result = self._execute_manual_qa_chain(full_question)
             
             # Format response
             response = {
-                "query": question,
-                "answer": result["result"],
+                "query": full_question,
+                "answer": chain_result.get("answer", ""),
                 "timestamp": datetime.now().isoformat(),
-                "regulation_type": regulation_type
+                "regulation_type": regulation_type,
+                "execution_steps": chain_result.get("execution_steps", [])
             }
             
             # Add sources if requested
-            if return_sources and "source_documents" in result:
+            if return_sources and chain_result.get("context_documents"):
                 sources = []
-                for i, doc in enumerate(result["source_documents"]):
+                for i, doc in enumerate(chain_result["context_documents"], 1):
                     sources.append({
-                        "content": doc.page_content,
-                        "metadata": doc.metadata,
-                        "relevance_rank": i + 1
+                        "rank": i,
+                        "source": doc["metadata"].get("source", "Unknown"),
+                        "content_preview": doc["content"],
+                        "metadata": doc["metadata"]
                     })
                 response["sources"] = sources
                 response["num_sources"] = len(sources)
+            
+            # Add error if present
+            if "error" in chain_result:
+                response["error"] = chain_result["error"]
             
             # Add to history
             self.query_history.append(response)
@@ -265,9 +351,44 @@ Answer:"""
             app_logger.error(f"Error processing query: {e}")
             return {
                 "error": str(e),
-                "query": question,
+                "query": full_question,
                 "answer": f"Error processing query: {str(e)}"
             }
+    
+    def _get_source_documents(
+        self,
+        query: str,
+        k: int = 4
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve source documents for a query.
+        
+        Args:
+            query: Search query
+            k: Number of documents to retrieve
+            
+        Returns:
+            List of source documents with metadata
+        """
+        try:
+            docs_and_scores = self.vector_store_manager.similarity_search_with_score(
+                query, k=k
+            )
+            
+            sources = []
+            for i, (doc, score) in enumerate(docs_and_scores):
+                sources.append({
+                    "content": doc.page_content[:500],  # Truncate for response
+                    "metadata": doc.metadata,
+                    "similarity_score": float(score),
+                    "relevance_rank": i + 1
+                })
+            
+            return sources
+            
+        except Exception as e:
+            app_logger.debug(f"Error retrieving source documents: {e}")
+            return []
     
     def search_similar_documents(
         self,
@@ -286,24 +407,7 @@ Answer:"""
         """
         app_logger.info(f"Searching similar documents: {query[:100]}")
         
-        try:
-            docs_and_scores = self.vector_store_manager.similarity_search_with_score(
-                query, k=k
-            )
-            
-            results = []
-            for doc, score in docs_and_scores:
-                results.append({
-                    "content": doc.page_content,
-                    "metadata": doc.metadata,
-                    "similarity_score": float(score)
-                })
-            
-            return results
-            
-        except Exception as e:
-            app_logger.error(f"Error searching documents: {e}")
-            return []
+        return self._get_source_documents(query, k=k)
     
     def get_system_stats(self) -> Dict[str, Any]:
         """

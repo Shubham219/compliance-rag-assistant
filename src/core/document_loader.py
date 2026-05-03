@@ -6,7 +6,7 @@ Handles different file formats and converts them to LangChain Documents.
 import os
 from typing import List, Optional
 from pathlib import Path
-from langchain.schema import Document
+from langchain_classic.schema import Document
 from langchain_community.document_loaders import (
     PyPDFLoader,
     TextLoader,
@@ -176,10 +176,10 @@ class DocumentLoader:
 
 if __name__ == "__main__":
     # Example usage: read a text file from ./regulatory_documents
-    documents_dir = "./regulatory_documents"
-    loader = DocumentLoader(documents_path=documents_dir)
+    loader = DocumentLoader()
     documents = loader.load_all_documents()
-
+    print("--- All Documents Loaded ---")
+    print(documents)
     for doc in documents:
         print("--- Document Start ---")
         print(doc.page_content)

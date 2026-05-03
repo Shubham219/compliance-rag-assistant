@@ -92,8 +92,8 @@ class ComplianceUI:
             html += f"""
             <div style='background-color: white; padding: 12px; margin: 10px 0; 
                         border-left: 4px solid #3498db; border-radius: 4px;'>
-                <strong>Source {i}</strong> (Rank: {source['relevance_rank']})
-                <p>{source['content'][:300]}...</p>
+                <strong>Source {i}</strong> (Rank: {source['rank']})
+                <p>{source['content_preview'][:300]}...</p>
             </div>
             """
         
@@ -124,7 +124,7 @@ class ComplianceUI:
                                  padding: 4px 12px; border-radius: 12px;'>
                         Similarity: {1 - doc['similarity_score']:.2%}
                     </span>
-                    <p>{doc['content'][:400]}...</p>
+                    <p>{doc['content_preview'][:400]}...</p>
                 </div>
                 """
             
@@ -142,28 +142,57 @@ class ComplianceUI:
             return "⚠️ No files uploaded"
         
         try:
+            # Ensure temp directory exists
+            temp_dir = Path("./temp")
+            temp_dir.mkdir(exist_ok=True)
+            
             file_paths = []
             for file in files:
-                # Save temporarily
-                temp_path = f"./temp_{file.name}"
-                with open(temp_path, 'wb') as f:
-                    f.write(file.read() if hasattr(file, 'read') else file)
-                file_paths.append(temp_path)
+                temp_path = None
+                
+                # Handle different file input types
+                if hasattr(file, 'name') and hasattr(file, 'read'):
+                    # File-like object (from Gradio upload)
+                    temp_path = temp_dir / file.name
+                    with open(temp_path, 'wb') as f:
+                        f.write(file.read())
+                elif isinstance(file, str):
+                    # String path (direct file path)
+                    file_path = Path(file)
+                    if file_path.exists():
+                        temp_path = temp_dir / file_path.name
+                        # Copy file to temp directory
+                        with open(file_path, 'rb') as src, open(temp_path, 'wb') as dst:
+                            dst.write(src.read())
+                    else:
+                        return f"❌ File not found: {file}"
+                else:
+                    return f"❌ Unsupported file type: {type(file)}"
+                          
+                if temp_path:
+                    file_paths.append(str(temp_path))
+            
+            if not file_paths:
+                return "❌ No valid files to process"
             
             # Add to system
             success = self.rag_system.add_documents(file_paths)
             
-            # Cleanup
+            # Cleanup temp files
             for path in file_paths:
-                if os.path.exists(path):
-                    os.remove(path)
+                try:
+                    if os.path.exists(path):
+                        os.remove(path)
+                except Exception as e:
+                    app_logger.warning(f"Failed to cleanup {path}: {e}")
             
             if success:
-                return f"✅ Successfully processed {len(files)} file(s)"
+                return f"✅ Successfully processed {len(file_paths)} file(s)"
             else:
                 return "❌ Error processing documents"
                 
         except Exception as e:
+            app_logger.error(f"Upload error: {e}")
             return f"❌ Error: {str(e)}"
     
     def get_query_history(self) -> str:
@@ -220,3 +249,22 @@ class ComplianceUI:
         </div>
         """
         return html
+    
+if __name__ == "__main__":
+    ui = ComplianceUI()
+    init_message = ui.initialize_system(
+        llm_provider="huggingface",
+        model_name="meta-llama/Llama-3.1-8B")
+    print(init_message)
+
+    # query = "What are the key compliance requirements for GDPR?"
+    # answer, sources, status = ui.query_compliance(query, regulation_filter="All", show_sources=True)
+    # print(status)
+    # print("Answer:", answer)
+    # print("Sources HTML:", sources)
+    
+    # Test upload_documents with a file from download directory
+    # Note: This is just for testing - in real usage, files come from Gradio upload
+    upload_documents = ['C:\\Users\\Dell\\AppData\\Local\\Temp\\gradio\\8f05742bf68db5c23a56355a8e2981ebddfc27201b135141136b0d87f2e69770\\FINAL_YEIDA-brochure-A4-_04-04-26.pdf']  # Add file paths here for testing
+    upload_status = ui.upload_documents(upload_documents)
+    print(upload_status)

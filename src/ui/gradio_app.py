@@ -38,11 +38,9 @@ def create_gradio_interface():
         # Header
         gr.HTML("""
             <div class="header">
-                <h1>🏛️ Regulatory Compliance Assistant</h1>
-                <p>AI-Powered RAG System for Compliance Queries</p>
-                <p style="font-size: 0.9em; opacity: 0.9;">
-                    FATF • GDPR • SOX • HIPAA • PCI-DSS • ISO 27001
-                </p>
+                <h1 style="color: white;">🏛️ Regulatory Compliance Assistant</h1>
+                <p style="color: white;">AI-Powered RAG System for Compliance Queries</p>
+               
             </div>
         """)
         
@@ -55,7 +53,7 @@ def create_gradio_interface():
                 with gr.Row():
                     with gr.Column():
                         llm_provider = gr.Radio(
-                            choices=["ollama", "openai"],
+                            choices=["ollama", "openai", 'huggingface'],
                             value="ollama",
                             label="LLM Provider"
                         )
@@ -169,6 +167,33 @@ def create_gradio_interface():
                     inputs=[file_upload],
                     outputs=[upload_status]
                 )
+
+            # # TAB X: Policy Compare
+            # with gr.Tab("⚖️ Policy Compare"):
+            #     gr.Markdown("### Compare Regulatory vs Internal Policy")
+
+            #     with gr.Row():
+            #         with gr.Column():
+            #             reg_file = gr.File(label="Regulatory Policy (PDF/Text)", file_count="single", file_types=[".pdf", ".txt", ".docx"])
+            #             reg_text = gr.Textbox(label="Or paste Regulatory Policy text (optional)", lines=8)
+
+            #         with gr.Column():
+            #             int_file = gr.File(label="Internal Policy (PDF/Text)", file_count="single", file_types=[".pdf", ".txt", ".docx"])
+            #             int_text = gr.Textbox(label="Or paste Internal Policy text (optional)", lines=8)
+
+            #     with gr.Row():
+            #         show_details_cb = gr.Checkbox(value=True, label="Show detailed diff / findings")
+            #         compare_btn = gr.Button("Compare Policies", variant="primary")
+
+            #     compare_summary = gr.Textbox(label="Summary", interactive=False, lines=4)
+            #     compare_details = gr.HTML(label="Details")
+
+            #     compare_btn.click(
+            #         fn=compare_policies_handler,
+            #         inputs=[reg_file, int_file, reg_text, int_text, show_details_cb],
+            #         outputs=[compare_summary, compare_details]
+            #     )
+
             
             # TAB 5: History
             with gr.Tab("📊 History"):
@@ -189,7 +214,7 @@ def create_gradio_interface():
             <div style='text-align: center; margin-top: 30px; padding: 20px; 
                         background-color: #f8f9fa; border-radius: 8px;'>
                 <p style='color: #7f8c8d; margin: 0;'>
-                    Built with ❤️ using LangChain, FAISS, and Gradio
+                    Built by FCD MENAT Regional Team
                 </p>
             </div>
         """)
@@ -202,14 +227,16 @@ def main():
     app_logger.info("Starting Gradio Web Interface...")
     
     demo = create_gradio_interface()
-    
+
+# Automatically reload the app on the code changes
     demo.launch(
         server_name=config.get("ui.host", "0.0.0.0"),
         server_port=config.get("ui.port", 7860),
         share=config.get("ui.share", False),
-        show_error=True
+        show_error=True,
+        debug=True,
+        # enable_queue=True
     )
-
 
 if __name__ == "__main__":
     main()

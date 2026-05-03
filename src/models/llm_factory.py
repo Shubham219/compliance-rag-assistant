@@ -26,6 +26,7 @@ class LLMFactory:
     Supports:
     - OpenAI (GPT models)
     - Ollama (Local models)
+    - Hugging Face (Cloud models)
     - Can be extended for other providers
     """
     
@@ -66,6 +67,14 @@ class LLMFactory:
             from .ollama_provider import OllamaProvider
             return OllamaProvider(
                 model=model_name,
+                temperature=temperature,
+                **kwargs
+            ).get_llm()
+        
+        elif provider.lower() == "huggingface":
+            from .huggingface_provider import HuggingFaceProvider
+            return HuggingFaceProvider(
+                model_name=model_name,
                 temperature=temperature,
                 **kwargs
             ).get_llm()

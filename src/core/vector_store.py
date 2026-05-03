@@ -6,7 +6,7 @@ Handles FAISS vector database operations.
 import os
 from pathlib import Path
 from typing import List, Optional, Tuple
-from langchain.schema import Document
+from langchain_classic.schema import Document
 from langchain_community.vectorstores import FAISS
 
 from ..utils.logger import app_logger
